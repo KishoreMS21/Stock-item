@@ -39,6 +39,22 @@ stock-items/
 └── INITIAL.md    Product brief
 ```
 
+## Deploy (free)
+
+**Stack:** Vercel (frontend) + Render (backend, Docker) + Neon (Postgres).
+
+1. **Neon** — https://neon.tech → new project → copy the connection string.
+2. **Render** — New → Blueprint → point at this repo. `render.yaml` is included.
+   Set env vars in the dashboard:
+   - `DATABASE_URL` — Neon connection string (the `postgres://` prefix auto-normalizes)
+   - `GEMINI_API_KEY` — free key from https://aistudio.google.com/app/apikey
+   - `CORS_ORIGINS` — `https://your-app.vercel.app` (comma-separated if multiple)
+3. **Vercel** — Import repo → root directory `frontend/` → env var
+   `VITE_API_URL=https://your-render-service.onrender.com`.
+
+Note: Render's free tier sleeps after 15 min of inactivity; first request after
+idle takes ~30s to wake.
+
 ## Phase status
 
 - [x] Phase 1 — auth, models, CRUD, dashboard, docker
