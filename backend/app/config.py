@@ -1,8 +1,7 @@
 import json
-from typing import Annotated
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -18,19 +17,18 @@ class Settings(BaseSettings):
 
     GEMINI_API_KEY: str = ""
 
-    CORS_ORIGINS: Annotated[list[str], NoDecode] = ["http://localhost:5173"]
+    # Stored as a raw string (JSON list or comma-separated) so pydantic-settings
+    # does not try to auto-JSON-decode it. Use `cors_origins` to read the list.
+    CORS_ORIGINS: str = "http://localhost:5173"
 
-    @field_validator("CORS_ORIGINS", mode="before")
-    @classmethod
-    def _parse_cors(cls, v):
-        if isinstance(v, list):
-            return v
-        if isinstance(v, str):
-            v = v.strip()
-            if v.startswith("["):
-                return json.loads(v)
-            return [o.strip() for o in v.split(",") if o.strip()]
-        return v
+    @property
+    def cors_origins(self) -> list[str]:
+        v = self.CORS_ORIGINS.strip()
+        if not v:
+            return []
+        if v.startswith("["):
+            return json.loads(v)
+        return [o.strip() for o in v.split(",") if o.strip()]
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
