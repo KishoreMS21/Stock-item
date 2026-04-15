@@ -1,7 +1,8 @@
 import json
+from typing import Annotated
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -17,11 +18,13 @@ class Settings(BaseSettings):
 
     GEMINI_API_KEY: str = ""
 
-    CORS_ORIGINS: list[str] = ["http://localhost:5173"]
+    CORS_ORIGINS: Annotated[list[str], NoDecode] = ["http://localhost:5173"]
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def _parse_cors(cls, v):
+        if isinstance(v, list):
+            return v
         if isinstance(v, str):
             v = v.strip()
             if v.startswith("["):
@@ -32,7 +35,6 @@ class Settings(BaseSettings):
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def _normalize_db_url(cls, v: str) -> str:
-        # Render/Neon sometimes hand out postgres:// — SQLAlchemy 2 wants postgresql://
         if isinstance(v, str) and v.startswith("postgres://"):
             return "postgresql://" + v[len("postgres://"):]
         return v
